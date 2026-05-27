@@ -125,43 +125,88 @@ Copy `.env.example` to `.env.development` and set `SECRETKEY` (min 32 characters
 
 Requires [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
 
-If `npm ci` fails inside Docker with “package.json and package-lock.json are out of sync”, run on the host (or via Docker):
+### Quick start
+
+```bash
+# 1. Build and start in the background
+docker compose up --build -d
+
+# 2. Confirm containers are running
+docker compose ps
+
+# 3. Check the API responds
+curl http://localhost:8000
+```
+
+Expected response from step 3:
+
+```text
+Express.js server is running!
+```
+
+Open in a browser: **http://localhost:8000**
+
+### Useful commands
+
+| Command | Purpose |
+|---------|---------|
+| `docker compose up --build` | Build images and run (foreground, shows logs) |
+| `docker compose up --build -d` | Build and run in background |
+| `docker compose ps` | Show container status and ports |
+| `docker compose logs app` | View API logs (errors, “Server running…”) |
+| `docker compose logs -f app` | Follow API logs live |
+| `docker compose down` | Stop and remove containers |
+| `npm run docker:dev` | Same as `docker compose up --build` |
+| `npm run docker:dev:down` | Same as `docker compose down` |
+
+Default ports:
+
+- API: **http://localhost:8000**
+- PostgreSQL: `localhost:5432` (user `postgres`, password `postgres`, db `express_boilerplate`)
+
+### Troubleshooting
+
+**`curl: (52) Empty reply from server`**
+
+The port is open but the Node app is not serving HTTP. Usually the app crashed on startup.
+
+```bash
+docker compose logs app --tail 50
+```
+
+Look for `Server running on port 8000` or TypeScript / database errors. After fixing code, restart:
+
+```bash
+docker compose restart app
+```
+
+**Container not listed or not `Up`**
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+**Lock file out of sync (`npm ci` failed during build)**
 
 ```bash
 npm install
-# or: bash scripts/sync-lockfile.sh
+docker compose build --no-cache
+docker compose up -d
 ```
-
-Then commit the updated `package-lock.json`.
-
-### Development (hot reload + PostgreSQL)
-
-```bash
-docker compose up --build
-```
-
-Or:
-
-```bash
-npm run docker:dev
-```
-
-- API: http://localhost:8000
-- PostgreSQL: `localhost:5432` (user/password/db from compose defaults or `.env.docker`)
-- Source is mounted into the container; `node_modules` stays inside the container (required for native modules like `bcrypt` on Windows)
 
 Optional: copy `.env.docker.example` to `.env.docker` to override compose variables:
 
 ```bash
 cp .env.docker.example .env.docker
-docker compose --env-file .env.docker up --build
+docker compose --env-file .env.docker up --build -d
 ```
 
-Stop containers:
+### Development details
 
-```bash
-npm run docker:dev:down
-```
+- Hot reload via nodemon (`Dockerfile.dev`)
+- Source is mounted into the container; `node_modules` stays inside the container (required for native modules like `bcrypt` on Windows)
+- Env vars are set in `docker-compose.yml` (no `.env.development` file required inside Docker)
 
 ### Production
 

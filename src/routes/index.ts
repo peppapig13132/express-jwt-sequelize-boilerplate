@@ -2,6 +2,7 @@ import { Request, Response, Application } from 'express';
 import authRouter from './auth.route';
 import { authenticate } from '../middleware/auth.middleware';
 import { AuthRequest } from '../interfaces/interfaces';
+import fs from 'fs';
 import path from 'path';
 
 export default (app: Application) => {
@@ -20,6 +21,16 @@ export default (app: Application) => {
   });
 
   app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '..', '..', 'static', 'index.html'));
+    const spaIndex = path.join(__dirname, '..', '..', 'static', 'index.html');
+
+    if (fs.existsSync(spaIndex)) {
+      res.sendFile(spaIndex);
+      return;
+    }
+
+    res.status(404).json({
+      ok: false,
+      msg: 'Not found',
+    });
   });
 };

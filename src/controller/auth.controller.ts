@@ -50,10 +50,11 @@ export const login: RequestHandler = asyncHandler(async (req: AuthRequest, res: 
   const isValidPassword = await bcrypt.compare(password, passwordHash);
 
   if (!user || !isValidPassword) {
-    return res.status(401).json({
+    res.status(401).json({
       ok: false,
       msg: INVALID_CREDENTIALS_MSG,
     });
+    return;
   }
 
   const tokens = await issueTokenPair({
@@ -88,10 +89,11 @@ export const refresh: RequestHandler = asyncHandler(async (req: AuthRequest, res
   const user = storedToken ? await User.findByPk(storedToken.userId) : null;
 
   if (!storedToken || !user) {
-    return res.status(401).json({
+    res.status(401).json({
       ok: false,
       msg: INVALID_REFRESH_TOKEN_MSG,
     });
+    return;
   }
 
   await storedToken.update({ revokedAt: new Date() });
