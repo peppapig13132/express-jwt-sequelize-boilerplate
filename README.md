@@ -125,6 +125,15 @@ Copy `.env.example` to `.env.development` and set `SECRETKEY` (min 32 characters
 
 Requires [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
 
+If `npm ci` fails inside Docker with “package.json and package-lock.json are out of sync”, run on the host (or via Docker):
+
+```bash
+npm install
+# or: bash scripts/sync-lockfile.sh
+```
+
+Then commit the updated `package-lock.json`.
+
 ### Development (hot reload + PostgreSQL)
 
 ```bash
