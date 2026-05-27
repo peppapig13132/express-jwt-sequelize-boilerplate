@@ -120,3 +120,53 @@ Never use `force: true` in this template; it drops all tables.
 | GET | `/api/protected` | Example protected route |
 
 Copy `.env.example` to `.env.development` and set `SECRETKEY` (min 32 characters).
+
+## Docker (Windows)
+
+Requires [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
+
+### Development (hot reload + PostgreSQL)
+
+```bash
+docker compose up --build
+```
+
+Or:
+
+```bash
+npm run docker:dev
+```
+
+- API: http://localhost:8000
+- PostgreSQL: `localhost:5432` (user/password/db from compose defaults or `.env.docker`)
+- Source is mounted into the container; `node_modules` stays inside the container (required for native modules like `bcrypt` on Windows)
+
+Optional: copy `.env.docker.example` to `.env.docker` to override compose variables:
+
+```bash
+cp .env.docker.example .env.docker
+docker compose --env-file .env.docker up --build
+```
+
+Stop containers:
+
+```bash
+npm run docker:dev:down
+```
+
+### Production
+
+```bash
+cp .env.docker.example .env.docker
+# Edit .env.docker — set a strong SECRETKEY and DB_PASSWORD
+npm run docker:prod
+```
+
+Production uses the multi-stage `Dockerfile`, sets `DB_SYNC=false` by default, and runs the compiled app.
+
+Stop production stack:
+
+```bash
+npm run docker:prod:down
+```
+

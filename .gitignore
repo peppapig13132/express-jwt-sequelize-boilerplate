@@ -4,3 +4,4 @@ static/*
 .env
 .env.production
 .env.development
+.env.docker

@@ -10,7 +10,11 @@
     "start:dev": "cross-env NODE_ENV=development nodemon",
     "build": "tsc",
     "serve:dev": "cross-env NODE_ENV=development node dist/index.js",
-    "serve:prod": "cross-env NODE_ENV=production node dist/index.js"
+    "serve:prod": "cross-env NODE_ENV=production node dist/index.js",
+    "docker:dev": "docker compose up --build",
+    "docker:dev:down": "docker compose down",
+    "docker:prod": "docker compose -f docker-compose.prod.yml --env-file .env.docker up --build -d",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   },
   "repository": {
     "type": "git",

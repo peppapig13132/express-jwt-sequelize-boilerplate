@@ -14,7 +14,7 @@ async function startServer(): Promise<void> {
   await syncModels();
 
   const app = createApp();
-  app.listen(port, () => {
+  app.listen(Number(port), '0.0.0.0', () => {
     console.log(color.cyan(`Server running on port ${port} (${env} mode)`));
   });
 }
