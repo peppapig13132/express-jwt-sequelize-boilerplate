@@ -3,17 +3,10 @@ import User from '../model/user.model';
 import { AuthRequest } from '../interfaces/interfaces';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { getJwtSecret } from '../config/env';
-import { normalizeEmail } from '../utils/auth';
+import { AuthCredentials } from '../schemas/auth.schema';
 
 export const checkDuplicatedEmail: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
-  const email = normalizeEmail(req.body?.email);
-
-  if (!email) {
-    return res.status(400).json({
-      ok: false,
-      msg: 'Valid email and password (min 8 characters) are required',
-    });
-  }
+  const { email } = req.body as AuthCredentials;
 
   const user = await User.findOne({ where: { email } });
 
@@ -24,7 +17,6 @@ export const checkDuplicatedEmail: RequestHandler = async (req: Request, res: Re
     });
   }
 
-  req.body.email = email;
   next();
 };
 
@@ -52,6 +44,13 @@ export const authenticate: RequestHandler = async (req: AuthRequest, res: Respon
   try {
     decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] }) as JwtPayload;
   } catch {
+    return res.status(401).json({
+      ok: false,
+      msg: 'Invalid or expired token',
+    });
+  }
+
+  if (decoded.type !== 'access') {
     return res.status(401).json({
       ok: false,
       msg: 'Invalid or expired token',

@@ -9,7 +9,9 @@
 
 - [x] TypeScript configured
 - [x] JWT based authentication and middleware
-- [x] User signup and login
+- [x] Access + refresh tokens with rotation and revocation
+- [x] User signup, login, logout, and protected routes
+- [x] Zod request validation, Helmet, CORS, and auth rate limiting
 - [x] [Sequelize ORM](https://sequelize.org/) for database interaction
 
 
@@ -88,4 +90,25 @@ If you use SPA for your frontend, copy compiled result into `static` folder.
 
 ## Database
 
-Set environment variable `DB_SYNC=true` to synchronize models and database. Otherwise, set it as `false`. Learn more about model synchronization [here](https://sequelize.org/docs/v6/core-concepts/model-basics/#model-synchronization). Since Sequelize has various versions, you can check Sequelize official site [here](https://sequelize.org/).
+`DB_SYNC` controls schema sync at startup:
+
+| Value | Behavior |
+|-------|----------|
+| `false` | No sync (default, use migrations in production) |
+| `true` | `sequelize.sync()` — creates missing tables only |
+| `alter` | `sequelize.sync({ alter: true })` — dev helper to adjust columns |
+
+Never use `force: true` in this template; it drops all tables.
+
+## Auth API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/signup` | Register |
+| POST | `/api/auth/login` | Login → `accessToken` + `refreshToken` |
+| POST | `/api/auth/refresh` | Rotate refresh token |
+| POST | `/api/auth/logout` | Revoke one refresh token |
+| POST | `/api/auth/logout-all` | Revoke all sessions (Bearer access token) |
+| GET | `/api/protected` | Example protected route |
+
+Copy `.env.example` to `.env.development` and set `SECRETKEY` (min 32 characters).
