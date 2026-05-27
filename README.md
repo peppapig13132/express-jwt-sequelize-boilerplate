@@ -32,6 +32,14 @@ Runs the server in development mode with hotload. Hotload configured by [`nodemo
 
 Builds the app for production to the `dist` folder.
 
+### `npm test`
+
+Runs the Vitest suite (schema, token, and auth API integration tests) using an in-memory SQLite database — no PostgreSQL required.
+
+### `npm run test:watch`
+
+Runs tests in watch mode during development.
+
 ### `npm run serve:dev`, `npm run serve:prod`
 
 After build the project, Runs the development/production server. Entry file is `dist/index.js`.

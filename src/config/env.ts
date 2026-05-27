@@ -26,7 +26,7 @@ export function getCorsOrigins(): string[] {
     return raw.split(',').map((origin) => origin.trim()).filter(Boolean);
   }
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     return ['http://localhost:3000', 'http://localhost:5173'];
   }
 
