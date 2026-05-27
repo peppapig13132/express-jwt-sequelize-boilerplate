@@ -4,9 +4,12 @@ FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 make g++ \
-  && rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+  for i in 1 2 3; do apt-get update && break || (echo "apt-get update failed (attempt $i)" && sleep 5); done; \
+  apt-get install -y --no-install-recommends ca-certificates python3 make g++; \
+  rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -21,9 +24,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 make g++ \
-  && rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -eux; \
+  for i in 1 2 3; do apt-get update && break || (echo "apt-get update failed (attempt $i)" && sleep 5); done; \
+  apt-get install -y --no-install-recommends ca-certificates python3 make g++; \
+  rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
