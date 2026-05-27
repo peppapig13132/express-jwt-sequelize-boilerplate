@@ -1,6 +1,7 @@
 import { Request, Response, Application } from 'express';
 import authRouter from './auth.route';
 import { authenticate } from '../middleware/auth.middleware';
+import { AuthRequest } from '../interfaces/interfaces';
 import path from 'path';
 
 export default (app: Application) => {
@@ -10,8 +11,12 @@ export default (app: Application) => {
 
   app.use('/api/auth', authRouter);
 
-  app.get('/api/protected', authenticate, (req: Request, res: Response) => {
-    res.send('This is protected route. You have right token!');
+  app.get('/api/protected', authenticate, (req: AuthRequest, res: Response) => {
+    res.json({
+      ok: true,
+      msg: 'This is a protected route.',
+      user: req.user,
+    });
   });
 
   app.get('*', (req: Request, res: Response) => {

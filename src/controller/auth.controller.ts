@@ -3,74 +3,86 @@ import asyncHandler from 'express-async-handler';
 import User from '../model/user.model';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import { getJwtSecret } from '../config/env';
+import {
+  DUMMY_PASSWORD_HASH,
+  parseAuthCredentials,
+} from '../utils/auth';
 
-const env = process.env.NODE_ENV || 'development';
-dotenv.config({ path: `.env.${env}` });
+const SALT_ROUNDS = 10;
+const TOKEN_EXPIRY = '24h';
+const INVALID_CREDENTIALS_MSG = 'Invalid email or password';
 
 export const signup: RequestHandler = asyncHandler(async (req: Request, res: Response) => {
-  const u = req.body;
+  const credentials = parseAuthCredentials(req.body);
 
-  const saltRounds = 10;
-  const passwordHash = await bcrypt.hash(u.password, saltRounds);
+  if (!credentials) {
+    return res.status(400).json({
+      ok: false,
+      msg: 'Valid email and password (min 8 characters) are required',
+    });
+  }
+
+  const passwordHash = await bcrypt.hash(credentials.password, SALT_ROUNDS);
 
   const user = await User.create({
-    email: u.email,
+    email: credentials.email,
     password: passwordHash,
-  })
+  });
 
-  res.json({
+  res.status(201).json({
     ok: true,
     user: {
-      user_id: user.dataValues.id,
+      id: user.id,
+      email: user.email,
     },
   });
 });
 
 export const login: RequestHandler = asyncHandler(async (req: Request, res: Response) => {
-  const u = req.body;
+  const credentials = parseAuthCredentials(req.body);
+
+  if (!credentials) {
+    return res.status(400).json({
+      ok: false,
+      msg: 'Valid email and password (min 8 characters) are required',
+    });
+  }
 
   const user = await User.findOne({
     where: {
-      email: u.email,
-    }
+      email: credentials.email,
+    },
   });
 
-  if(user) {
-    const isSame = await bcrypt.compare(u.password, user.dataValues.password);
+  const passwordHash = user?.password ?? DUMMY_PASSWORD_HASH;
+  const isValidPassword = await bcrypt.compare(credentials.password, passwordHash);
 
-    if(isSame) {
-      const secret = process.env.SECRETKEY || '';
-
-      const token = jwt.sign(
-        {
-          id: user.dataValues.id,
-          email: user.dataValues.email,
-        },
-        secret,
-        {
-          expiresIn: 1 * 60 * 60 * 24,
-        }
-      );
-
-      res.json({
-        ok: true,
-        user: {
-          id: user.dataValues.id,
-          email: user.dataValues.email,
-        },
-        token: token,
-      });
-    } else {
-      res.json({
-        ok: false,
-        msg: 'incorrect password',
-      });
-    }
-  } else {
-    res.json({
+  if (!user || !isValidPassword) {
+    return res.status(401).json({
       ok: false,
-      msg: 'email not found',
+      msg: INVALID_CREDENTIALS_MSG,
     });
   }
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+    },
+    getJwtSecret(),
+    {
+      expiresIn: TOKEN_EXPIRY,
+      algorithm: 'HS256',
+    }
+  );
+
+  res.json({
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email,
+    },
+    token,
+  });
 });
